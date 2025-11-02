@@ -29,6 +29,30 @@ def get_crawler(website: str):
     return crawler
 
 
+def get_token_from_header(authorization: Optional[str]) -> str:
+    """Extract token from Authorization header"""
+    if not authorization:
+        raise HTTPException(
+            status_code=401,
+            detail="Missing authorization header"
+        )
+    
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid authorization header format"
+        )
+    
+    token = authorization.replace("Bearer ", "")
+    
+    if token not in active_sessions:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired token"
+        )
+    
+    return token
+
 @router.post("/login", response_model=LoginResponse)
 async def login(request: LoginRequest):
     """
@@ -107,6 +131,113 @@ async def get_deals(authorization: Optional[str] = Header(None)):
         raise HTTPException(
             status_code=500,
             detail=f"Failed to fetch deals: {str(e)}"
+        )
+
+@router.get("/deals/{deal_id}/files")
+async def get_deal_files(
+    deal_id: int,
+    authorization: Optional[str] = Header(None)
+):
+    """
+    Get files for a specific deal
+    
+    Args:
+        deal_id: The ID of the deal
+        authorization: Bearer token
+        
+    Returns:
+        JSON with files list
+    """
+    try:
+        token = get_token_from_header(authorization)
+        session = active_sessions[token]
+        
+        crawler = get_crawler(session["website"])
+        files = await crawler.get_deal_files(deal_id, token)
+        
+        return files
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to fetch deal files: {str(e)}"
+        )
+
+
+@router.get("/deals/{deal_id}/folders")
+async def get_deal_folders(
+    deal_id: int,
+    authorization: Optional[str] = Header(None)
+):
+    """
+    Get folder structure for a specific deal
+    
+    Args:
+        deal_id: The ID of the deal
+        authorization: Bearer token
+        
+    Returns:
+        JSON with folders data
+    """
+    try:
+        token = get_token_from_header(authorization)
+        session = active_sessions[token]
+        
+        crawler = get_crawler(session["website"])
+        folders = await crawler.get_deal_folders(deal_id, token)
+        
+        return folders
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to fetch deal folders: {str(e)}"
+        )
+
+
+@router.get("/download-file")
+async def download_file(
+    file_url: str,
+    filename: str,
+    authorization: Optional[str] = Header(None)
+):
+    """
+    Download a file from a deal
+    
+    Args:
+        file_url: Full URL of the file to download
+        filename: Original filename for download
+        authorization: Bearer token
+        
+    Returns:
+        File as streaming response
+    """
+    try:
+        token = get_token_from_header(authorization)
+        session = active_sessions[token]
+        
+        crawler = get_crawler(session["website"])
+        file_content = await crawler.download_file(file_url, token)
+        
+        # Return file as streaming response
+        return StreamingResponse(
+            BytesIO(file_content),
+            media_type="application/octet-stream",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}"
+            }
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to download file: {str(e)}"
         )
 
 
