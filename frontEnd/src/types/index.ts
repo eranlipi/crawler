@@ -41,6 +41,23 @@ export interface Deal {
   deal_capital_seeker_email: string;
 }
 
+export interface DealFile {
+  id: number;
+  name: string;
+  size: number;
+  mime_type: string;
+  url: string;
+  created_at: string;
+  folder_id?: number;
+}
+
+export interface DealFolder {
+  id: number;
+  name: string;
+  parent_id?: number;
+  files_count: number;
+}
+
 export interface LoginResponse {
   success: {
     token: string;
@@ -48,10 +65,21 @@ export interface LoginResponse {
     user: User;
     redirect_to: string;
   };
+  website?: string;
 }
 
 export interface DealsResponse {
   data: Deal[];
+  message: string;
+}
+
+export interface DealFilesResponse {
+  data: DealFile[];
+  message: string;
+}
+
+export interface DealFoldersResponse {
+  data: DealFolder[];
   message: string;
 }
 

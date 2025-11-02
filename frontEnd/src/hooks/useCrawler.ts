@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { apiService } from '../services/api.service';
-import type { LoginResponse, DealsResponse, Deal, User } from '../types';
+import type { Deal, User,DealFile } from '../types';
 
 interface CrawlerState {
   isAuthenticated: boolean;
@@ -10,6 +10,9 @@ interface CrawlerState {
   loading: boolean;
   error: string | null;
   loadingDeals: boolean;
+  selectedDeal: Deal | null;
+  dealFiles: DealFile[];
+  loadingFiles: boolean;
 }
 
 export const useCrawler = () => {
@@ -21,6 +24,9 @@ export const useCrawler = () => {
     loading: false,
     error: null,
     loadingDeals: false,
+    selectedDeal: null,
+    dealFiles: [],
+    loadingFiles: false,
   });
 
   const login = async (website: string, email: string, password: string) => {
@@ -76,6 +82,51 @@ export const useCrawler = () => {
     }
   };
 
+  const selectDeal = (deal: Deal) => {
+    setState((prev) => ({
+      ...prev,
+      selectedDeal: deal,
+      dealFiles: [], // Reset files when selecting new deal
+    }));
+  };
+
+  const fetchDealFiles = async (dealId: number) => {
+    setState((prev) => ({ ...prev, loadingFiles: true, error: null }));
+
+    try {
+      const response = await apiService.getDealFiles(dealId);
+
+      setState((prev) => ({
+        ...prev,
+        dealFiles: response.data,
+        loadingFiles: false,
+      }));
+
+      return response;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch files';
+      setState((prev) => ({
+        ...prev,
+        loadingFiles: false,
+        error: errorMessage,
+      }));
+      throw err;
+    }
+  };
+
+  const downloadFile = async (fileUrl: string, filename: string) => {
+    try {
+      await apiService.downloadFile(fileUrl, filename);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to download file';
+      setState((prev) => ({
+        ...prev,
+        error: errorMessage,
+      }));
+      throw err;
+    }
+  };
+
   const logout = () => {
     apiService.logout();
     setState({
@@ -86,6 +137,9 @@ export const useCrawler = () => {
       loading: false,
       error: null,
       loadingDeals: false,
+      selectedDeal: null,
+      dealFiles: [],
+      loadingFiles: false,
     });
   };
 
@@ -99,6 +153,9 @@ export const useCrawler = () => {
   return {
     login,
     fetchDeals,
+    selectDeal,
+    fetchDealFiles,
+    downloadFile,
     logout,
     reset,
     isAuthenticated: state.isAuthenticated,
@@ -108,5 +165,8 @@ export const useCrawler = () => {
     loading: state.loading,
     loadingDeals: state.loadingDeals,
     error: state.error,
+    selectedDeal: state.selectedDeal,
+    dealFiles: state.dealFiles,
+    loadingFiles: state.loadingFiles,
   };
 };
