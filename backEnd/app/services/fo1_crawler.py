@@ -39,9 +39,10 @@ class FO1Crawler(BaseCrawler):
             )
             response.raise_for_status()
             return response.json()
+    
     async def get_deal_files(self, deal_id: int, token: str) -> Dict[str, Any]:
         """
-        Get files for a specific deal
+        Get files for a specific deal and transform to array format
         
         Returns:
             Dictionary with files list and metadata
@@ -53,7 +54,24 @@ class FO1Crawler(BaseCrawler):
             )
             try:
                 response.raise_for_status()
-                return response.json()
+                data = response.json()
+                
+                # Transform object to array
+                if isinstance(data.get("data"), dict):
+                    files_array = []
+                    for file_id, file_data in data["data"].items():
+                        # Map API fields to our expected format
+                        files_array.append({
+                            "id": file_data.get("id"),
+                            "name": file_data.get("name"),
+                            "size": file_data.get("size_in_bytes", 0),
+                            "mime_type": file_data.get("type", "unknown"),
+                            "url": file_data.get("file_url"),
+                            "created_at": file_data.get("created_at"),
+                        })
+                    return {"data": files_array, "message": data.get("message", "Success")}
+                
+                return data
             except httpx.HTTPStatusError as e:
                 if e.response.status_code == 404:
                     # No files found for this deal
@@ -98,6 +116,3 @@ class FO1Crawler(BaseCrawler):
             )
             response.raise_for_status()
             return response.json()
-
-
-
