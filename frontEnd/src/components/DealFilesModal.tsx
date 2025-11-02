@@ -35,74 +35,121 @@ export const DealFilesModal: React.FC<DealFilesModalProps> = ({
   };
 
   const getFileIcon = (mimeType: string): string => {
-    if (mimeType.includes('pdf')) return '📄';
-    if (mimeType.includes('image')) return '🖼️';
-    if (mimeType.includes('word') || mimeType.includes('document')) return '📝';
-    if (mimeType.includes('excel') || mimeType.includes('spreadsheet')) return '📊';
-    if (mimeType.includes('zip') || mimeType.includes('rar')) return '📦';
+    const type = mimeType.toLowerCase();
+    if (type.includes('pdf')) return '📄';
+    if (type.includes('image') || type.includes('png') || type.includes('jpg') || type.includes('jpeg')) return '🖼️';
+    if (type.includes('word') || type.includes('doc')) return '📝';
+    if (type.includes('excel') || type.includes('sheet') || type.includes('xls')) return '📊';
+    if (type.includes('zip') || type.includes('rar')) return '📦';
+    if (type.includes('video') || type.includes('mp4')) return '🎥';
     return '📎';
+  };
+
+  const formatDate = (dateString: string): string => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   return (
     <div 
-      className="fixed inset-0 bg-black/70 flex items-center justify-center z-[1000] animate-[fadeIn_0.2s_ease-in]"
+      className="fixed inset-0 bg-black/70 flex items-center justify-center z-[1000] animate-[fadeIn_0.2s_ease-in] p-4"
       onClick={onClose}
     >
       <div 
-        className="bg-white rounded-xl w-[90%] max-w-[37.5rem] max-h-[80vh] flex flex-col shadow-[0_0.625rem_2.5rem_rgba(0,0,0,0.3)] animate-[slideUp_0.3s_ease-out]"
+        className="bg-white rounded-2xl w-full max-w-4xl max-h-[85vh] flex flex-col shadow-[0_1.25rem_3.75rem_rgba(0,0,0,0.4)] animate-[slideUp_0.3s_ease-out]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="py-5 px-6 border-b border-gray-200 flex items-center justify-between">
-          <h2 className="m-0 text-xl font-semibold text-gray-800">
-            Files in "{deal.title}"
-          </h2>
+        {/* Header */}
+        <div className="py-6 px-8 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-[#667eea] to-[#764ba2] rounded-t-2xl">
+          <div className="flex-1">
+            <h2 className="m-0 text-2xl font-bold text-white mb-1">
+              Deal Files
+            </h2>
+            <p className="m-0 text-white/90 text-sm">
+              {deal.title}
+            </p>
+          </div>
           <button
-            className="bg-transparent border-none text-2xl text-gray-500 cursor-pointer p-0 w-8 h-8 flex items-center justify-center rounded-md transition-all hover:bg-gray-100 hover:text-gray-900"
+            className="bg-white/20 hover:bg-white/30 border-none text-white text-2xl cursor-pointer p-0 w-10 h-10 flex items-center justify-center rounded-lg transition-all backdrop-blur-sm"
             onClick={onClose}
           >
             ✕
           </button>
         </div>
 
-        <div className="py-5 px-6 overflow-y-auto flex-1">
+        {/* Body */}
+        <div className="py-6 px-8 overflow-y-auto flex-1">
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-10 text-gray-500">
-              <div className="w-10 h-10 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin mb-4"></div>
-              <p>Loading files...</p>
+            <div className="flex flex-col items-center justify-center py-16 text-gray-500">
+              <div className="w-12 h-12 border-4 border-gray-200 border-t-[#667eea] rounded-full animate-spin mb-5"></div>
+              <p className="text-lg">Loading files...</p>
             </div>
           ) : files.length === 0 ? (
-            <div className="text-center py-15 px-5 text-gray-500 text-lg">
-              <p>📂 No files found in this deal</p>
+            <div className="text-center py-20 px-5 text-gray-400">
+              <div className="text-6xl mb-4">📂</div>
+              <p className="text-xl font-medium text-gray-600 mb-2">No files found</p>
+              <p className="text-sm text-gray-500">This deal doesn't have any files yet</p>
             </div>
           ) : (
             <div className="flex flex-col gap-3">
               {files.map((file) => (
                 <div
                   key={file.id}
-                  className="flex items-center gap-3 py-4 px-4 bg-gray-50 border border-gray-200 rounded-lg transition-all hover:bg-gray-100 hover:border-gray-300 hover:-translate-y-px"
+                  className="flex items-start gap-4 py-5 px-5 bg-gradient-to-br from-gray-50 to-gray-100/50 border border-gray-200 rounded-xl transition-all hover:shadow-lg hover:border-[#667eea]/30 hover:-translate-y-0.5 group"
                 >
-                  <div className="text-3xl flex-shrink-0">
+                  {/* File Icon */}
+                  <div className="text-5xl flex-shrink-0 transition-transform group-hover:scale-110">
                     {getFileIcon(file.mime_type)}
                   </div>
+                  
+                  {/* File Info */}
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-gray-800 overflow-hidden text-ellipsis whitespace-nowrap">
+                    <div className="font-semibold text-gray-900 text-lg mb-1 overflow-hidden text-ellipsis">
                       {file.name}
                     </div>
-                    <div className="text-sm text-gray-500 mt-1">
-                      {formatFileSize(file.size)} • {new Date(file.created_at).toLocaleDateString()}
+                    <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-medium">Size:</span>
+                        <span className="text-gray-700">{formatFileSize(file.size)}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-medium">Type:</span>
+                        <span className="text-gray-700 uppercase">{file.mime_type}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-medium">Created:</span>
+                        <span className="text-gray-700">{formatDate(file.created_at)}</span>
+                      </div>
                     </div>
                   </div>
+                  
+                  {/* Download Button */}
                   <button
-                    className="py-2 px-4 bg-blue-500 text-white border-none rounded-md text-sm font-medium cursor-pointer transition-all flex-shrink-0 hover:bg-blue-600 hover:scale-105 active:scale-95"
+                    className="py-3 px-6 bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white border-none rounded-lg text-sm font-semibold cursor-pointer transition-all flex-shrink-0 hover:shadow-lg hover:shadow-[#667eea]/50 hover:scale-105 active:scale-95 flex items-center gap-2"
                     onClick={() => onDownload(file.url, file.name)}
                   >
-                    ⬇️ Download
+                    <span className="text-lg">⬇️</span>
+                    Download
                   </button>
                 </div>
               ))}
             </div>
           )}
         </div>
+
+        {/* Footer */}
+        {!loading && files.length > 0 && (
+          <div className="py-4 px-8 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
+            <div className="text-sm text-gray-600 text-center">
+              <span className="font-semibold text-gray-800">{files.length}</span> file{files.length !== 1 ? 's' : ''} in this deal
+            </div>
+          </div>
+        )}
       </div>
 
       <style>{`
