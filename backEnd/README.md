@@ -1,69 +1,71 @@
-# Deals Portal Backend - FastAPI
+# Spider Web Crawler - Backend
 
 ## Overview
-This FastAPI backend acts as a proxy between the React frontend and the Altius Finance API. It handles authentication, session management, and deals retrieval.
-
-## Architecture
-
-```
-React Frontend → FastAPI Backend → Altius Finance API
-                      ↓
-              (Session Storage)
-```
+This FastAPI backend provides a web crawling API that integrates with multiple data sources. It handles authentication, session management, and web scraping operations for different websites.
 
 ## Features
 
-- **Login Proxy**: Forwards authentication requests to Altius Finance API
-- **Session Management**: Stores active user sessions with tokens
-- **Deals Retrieval**: Fetches deals using stored authentication tokens
+- **Multi-Site Crawling**: Support for multiple website crawlers (FO1, FO2)
+- **Authentication API**: User login and session management
+- **RESTful API**: Clean and documented API endpoints
 - **CORS Support**: Configured for frontend communication
 - **Error Handling**: Comprehensive error responses
+- **Async Operations**: Efficient asynchronous HTTP requests
 
 ## Prerequisites
 
-- Python 3.8 or higher
-- pip (Python package manager)
+- **Python 3.8 or higher**
+- **pip** (Python package manager)
 
 ## Installation
 
-### 1. Create Virtual Environment
+### 1. Navigate to Backend Directory
 
 ```bash
-# Navigate to backend directory
 cd backEnd
+```
 
+### 2. Create Virtual Environment
+
+```bash
 # Create virtual environment
 python -m venv venv
 
 # Activate virtual environment
 # On Windows:
 venv\Scripts\activate
+
 # On macOS/Linux:
 source venv/bin/activate
 ```
 
-### 2. Install Dependencies
+### 3. Install Dependencies
 
-```bash
-pip install fastapi uvicorn httpx pydantic email-validator
-```
-
-Or create a `requirements.txt` file:
-```txt
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-httpx==0.25.0
-pydantic[email]==2.5.0
-```
-
-Then install:
 ```bash
 pip install -r requirements.txt
 ```
 
+The `requirements.txt` includes:
+- `fastapi==0.104.1` - Web framework
+- `uvicorn[standard]==0.24.0` - ASGI server
+- `httpx==0.25.1` - Async HTTP client
+- `python-dotenv==1.0.0` - Environment variable management
+- `pydantic==2.5.0` - Data validation
+- `python-multipart==0.0.6` - Form data parsing
+- `email-validator==2.1.0` - Email validation
+
+### 4. Environment Configuration
+
+Create a `.env` file in the `backEnd` directory (optional):
+
+```bash
+# Copy the example file
+cp .env.example .env
+```
+
 ## Running the Server
 
-### Development Mode
+### Development Mode (with auto-reload)
 
 ```bash
 # Make sure virtual environment is activated
@@ -71,7 +73,13 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-The server will start on `http://localhost:8000`
+Or use the shorter command:
+
+```bash
+python -m uvicorn app.main:app --reload
+```
+
+The server will start on **`http://localhost:8000`**
 
 ### Production Mode
 
@@ -79,25 +87,46 @@ The server will start on `http://localhost:8000`
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
 ```
 
-## API Documentation
+### Verify Installation
 
-Once the server is running, visit:
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
+Once the server is running, open your browser and visit:
+- Root endpoint: `http://localhost:8000` (should return: `{"message": "Site Crawler API is running"}`)
+- API Documentation (Swagger UI): `http://localhost:8000/docs`
+- Alternative Documentation (ReDoc): `http://localhost:8000/redoc`
+
+## API Endpoints
+
+### Authentication
+- `POST /api/login` - User login
+- `POST /api/logout` - User logout
+
+### Crawling
+- `POST /api/crawl` - Start crawling operation
+- `GET /api/deals` - Get deals list
+- `GET /api/download` - Download deal files
 
 ## Project Structure
 
 ```
 backEnd/
 ├── app/
+│   ├── main.py              # Application entry point
+│   ├── core/
+│   │   ├── config.py        # Configuration settings
+│   │   └── http_client.py   # HTTP client utilities
 │   ├── routers/
-│   │   └── auth.py           # Authentication endpoints
+│   │   └── auth.py          # Authentication endpoints
 │   ├── services/
-│   │   ├── base_crawler.py   # Abstract base class for crawlers
-│   │   ├── fo1_crawler.py    # FO1 API integration
-│   │   └── fo2_crawler.py    # FO2 API integration
+│   │   ├── base_crawler.py  # Abstract base class for crawlers
+│   │   ├── fo1_crawler.py   # FO1 website crawler
+│   │   └── fo2_crawler.py   # FO2 website crawler
 │   ├── models/
-│   │   └── schemas.py        # Pydantic models
+│   │   └── schemas.py       # Pydantic models
+│   └── utils/
+│       └── exceptions.py    # Custom exceptions
+├── requirements.txt         # Python dependencies
+├── .env.example            # Example environment variables
+└── README.md               # This file
 │   ├── core/
 │   │   ├── config.py         # Configuration
 │   │   └── http_client.py    # HTTP client utilities

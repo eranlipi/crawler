@@ -114,9 +114,9 @@ export const useCrawler = () => {
     }
   };
 
-  const downloadFile = async (fileUrl: string, filename: string) => {
+  const downloadFile = async (dealId: number, fileId: number, filename: string) => {
     try {
-      await apiService.downloadFile(fileUrl, filename);
+      await apiService.downloadFile(dealId, fileId, filename);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to download file';
       setState((prev) => ({

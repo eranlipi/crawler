@@ -6,7 +6,7 @@ interface DealFilesModalProps {
   files: DealFile[];
   loading: boolean;
   onClose: () => void;
-  onDownload: (fileUrl: string, filename: string) => void;
+  onDownload: (dealId: number, fileId: number, filename: string) => void;
 }
 
 export const DealFilesModal: React.FC<DealFilesModalProps> = ({
@@ -131,7 +131,7 @@ export const DealFilesModal: React.FC<DealFilesModalProps> = ({
                   {/* Download Button */}
                   <button
                     className="py-3 px-6 bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white border-none rounded-lg text-sm font-semibold cursor-pointer transition-all flex-shrink-0 hover:shadow-lg hover:shadow-[#667eea]/50 hover:scale-105 active:scale-95 flex items-center gap-2"
-                    onClick={() => onDownload(file.url, file.name)}
+                    onClick={() => onDownload(deal.id, file.id, file.name)}
                   >
                     <span className="text-lg">⬇️</span>
                     Download
