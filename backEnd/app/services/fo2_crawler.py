@@ -5,13 +5,24 @@ from typing import Dict, Any
 class FO2Crawler(BaseCrawler):
     def __init__(self):
         super().__init__("https://fo2.api.altius.finance")
+        # Use a persistent client to maintain cookies across requests
+        self.client = None
+    
+    def get_client(self, token: str) -> httpx.AsyncClient:
+        """Get or create a client for this token with cookie support"""
+        if self.client is None:
+            self.client = httpx.AsyncClient(
+                cookies={"Authorization2": token},
+                follow_redirects=True
+            )
+        return self.client
 
     async def login(self, email: str, password: str) -> Dict[str, Any]:
         """
         Login to FO2 Altius Finance API
         Returns the full response including token and user data
         """
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(follow_redirects=True) as client:
             response = await client.post(
                 f"{self.base_url}/api/v0.0.2/login",
                 json={"email": email, "password": password},
@@ -33,12 +44,24 @@ class FO2Crawler(BaseCrawler):
         """
         Get deals list using the authentication token
         """
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(
+            cookies={"Authorization2": token},
+            follow_redirects=True
+        ) as client:
             response = await client.post(
                 f"{self.base_url}/api/v0.0.2/deals-list",
-                headers={"Cookie": f"Authorization2={token}"}
+                json={"view": "task-manage"},
+                headers={"Content-Type": "application/json"}
             )
-            response.raise_for_status()
+            
+            if response.status_code != 200:
+                try:
+                    error_data = response.json()
+                    error_msg = f"FO2 API returned {response.status_code}: {error_data}"
+                except:
+                    error_msg = f"FO2 API returned {response.status_code}: {response.text}"
+                raise Exception(error_msg)
+            
             return response.json()
 
     async def get_deal_files(self, deal_id: int, token: str) -> Dict[str, Any]:
@@ -48,10 +71,12 @@ class FO2Crawler(BaseCrawler):
         Returns:
             Dictionary with files list and metadata
         """
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(
+            cookies={"Authorization2": token},
+            follow_redirects=True
+        ) as client:
             response = await client.get(
-                f"{self.base_url}/api/v0.0.3/deals/{deal_id}/files",
-                headers={"Cookie": f"Authorization2={token}"},
+                f"{self.base_url}/api/v0.0.3/deals/{deal_id}/files"
             )
             try:
                 response.raise_for_status()
@@ -90,12 +115,12 @@ class FO2Crawler(BaseCrawler):
         Returns:
             File content as bytes
         """
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            response = await client.get(
-                file_url,
-                headers={"Cookie": f"Authorization2={token}"},
-                follow_redirects=True
-            )
+        async with httpx.AsyncClient(
+            cookies={"Authorization2": token},
+            timeout=60.0,
+            follow_redirects=True
+        ) as client:
+            response = await client.get(file_url)
             response.raise_for_status()
             return response.content
     
@@ -110,10 +135,12 @@ class FO2Crawler(BaseCrawler):
         Returns:
             Dictionary with folders data
         """
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(
+            cookies={"Authorization2": token},
+            follow_redirects=True
+        ) as client:
             response = await client.get(
-                f"{self.base_url}/api/v0.0.3/deals/{deal_id}/folders",
-                headers={"Cookie": f"Authorization2={token}"},
+                f"{self.base_url}/api/v0.0.3/deals/{deal_id}/folders"
             )
             response.raise_for_status()
             return response.json()
