@@ -1,10 +1,10 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 
 class LoginRequest(BaseModel):
     website: str  # "fo1" or "fo2"
-    email: EmailStr
+    email: str
     password: str
 
 class UserRole(BaseModel):
