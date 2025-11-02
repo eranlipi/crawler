@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/User/Desktop/clients/spider-web/backEnd/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
