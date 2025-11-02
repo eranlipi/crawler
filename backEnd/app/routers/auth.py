@@ -55,7 +55,7 @@ def get_token_from_header(authorization: Optional[str]) -> str:
     
     return token
 
-@router.post("/login", response_model=LoginResponse)
+@router.post("/login")
 async def login(request: LoginRequest):
     """
     Login endpoint that proxies the request to the appropriate site API
@@ -71,9 +71,14 @@ async def login(request: LoginRequest):
         # Call the external API
         response = await crawler.login(request.email, request.password)
 
-        # Store the token for this session
-        if response.get("success", {}).get("token"):
+        # Store the token for this session (handle both response formats)
+        token = None
+        if "success" in response and "token" in response.get("success", {}):
             token = response["success"]["token"]
+        elif "token" in response:
+            token = response["token"]
+
+        if token:
             active_sessions[token] = {
                 "website": request.website,
                 "email": request.email

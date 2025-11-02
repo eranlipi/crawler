@@ -17,16 +17,17 @@ class FO1Crawler(BaseCrawler):
                 json={"email": email, "password": password},
                 headers={"Content-Type": "application/json"}
             )
-            try:
-                response.raise_for_status()
-                return response.json()
-            except httpx.HTTPStatusError as e:
-                # Try to get the response body for better error messages
+
+            if response.status_code != 200:
+                # Get detailed error information
                 try:
-                    error_detail = response.json()
-                    raise Exception(f"API error: {response.status_code} - {error_detail}")
+                    error_data = response.json()
+                    error_msg = f"FO1 API returned {response.status_code}: {error_data}"
                 except:
-                    raise Exception(f"API error: {response.status_code} - {response.text}")
+                    error_msg = f"FO1 API returned {response.status_code}: {response.text}"
+                raise Exception(error_msg)
+
+            return response.json()
 
     async def get_deals(self, token: str) -> Dict[str, Any]:
         """
