@@ -8,12 +8,15 @@ interface Props {
 
 export const WebsiteSelector = ({ websites, selectedWebsite, onSelect }: Props) => {
   return (
-    <div className="website-selector">
-      <label htmlFor="website">Select Website:</label>
+    <div className="flex flex-col gap-2">
+      <label htmlFor="website" className="block font-semibold text-gray-700 text-sm">
+        Select Website
+      </label>
       <select
         id="website"
         value={selectedWebsite}
         onChange={(e) => onSelect(e.target.value)}
+        className="w-full py-3 px-4 border-2 border-gray-200 rounded-lg text-base transition-all focus:outline-none focus:border-[#667eea] focus:ring-4 focus:ring-[#667eea]/10 bg-white cursor-pointer"
       >
         <option value="">-- Choose a website --</option>
         {websites.map((site) => (
