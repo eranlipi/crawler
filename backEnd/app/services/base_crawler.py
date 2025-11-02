@@ -1,49 +1,75 @@
 from abc import ABC, abstractmethod
-import httpx
-from typing import Dict, Any
+from typing import Dict, Any, Tuple
+
 
 class BaseCrawler(ABC):
-    def __init__(self, base_url: str):
-        self.base_url = base_url
-        # self.token = None
-
+    """Abstract base class for site crawlers"""
+    
     @abstractmethod
     async def login(self, email: str, password: str) -> Dict[str, Any]:
         """
-        Login to the API and return the full response
+        Login to the website
+        
+        Args:
+            email: User email
+            password: User password
+            
+        Returns:
+            Login response with token and user data
         """
         pass
-
+    
     @abstractmethod
     async def get_deals(self, token: str) -> Dict[str, Any]:
         """
-        Get deals list using the authentication token
+        Get list of deals
+        
+        Args:
+            token: Authentication token
+            
+        Returns:
+            Deals response
         """
         pass
+    
+    @abstractmethod
+    async def get_deal_folders(self, deal_id: int, token: str) -> Dict[str, Any]:
+        """
+        Get folders for a specific deal
+        
+        Args:
+            deal_id: Deal ID
+            token: Authentication token
+            
+        Returns:
+            Folders response
+        """
+        pass
+    
     @abstractmethod
     async def get_deal_files(self, deal_id: int, token: str) -> Dict[str, Any]:
         """
         Get files for a specific deal
         
         Args:
-            deal_id: The ID of the deal
+            deal_id: Deal ID
             token: Authentication token
             
         Returns:
-            Dictionary with files data
+            Files response
         """
         pass
     
     @abstractmethod
-    async def download_file(self, file_url: str, token: str) -> bytes:
+    async def download_file(self, file_id: int, token: str) -> Tuple[bytes, str]:
         """
-        Download a file from the deal
+        Download a file
         
         Args:
-            file_url: URL of the file to download
+            file_id: File ID
             token: Authentication token
             
         Returns:
-            File content as bytes
+            Tuple of (file_content, filename)
         """
         pass
